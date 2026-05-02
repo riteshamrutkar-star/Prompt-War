@@ -69,35 +69,32 @@ Prompt-War/
 
 ## 🔧 Google Services Used
 
-| Service | Usage |
-|---|---|
-| **Google Gemini 2.0 Flash** | Core AI chat — election Q&A, explanations, civic guidance |
-| **Google Fonts** | Inter + Outfit typefaces for premium typography |
-| **Google AI Studio** | API key provisioning link within the app |
+- **Google Gemini API (`@google/generative-ai`)**: Powers the core AI chat, multimodal Ballot Analyzer (Gemini Vision), dynamic quiz generation (structured JSON), and personalized civic readiness reports.
+- **Google Fonts**: Premium typography using Inter and Outfit.
+- **Google AI Studio**: Platform utilized for provisioning access and managing limits.
 
 ---
 
-## 🛡️ Security & Best Practices
+## 🧪 Testing & Code Quality
 
-- **API Key Storage**: Keys stored in `sessionStorage` only (cleared on tab close, never in localStorage or cookies)
-- **Input Sanitization**: All user input and AI output is HTML-sanitized before rendering
-- **Rate Limiting**: Built-in retry logic with exponential backoff
-- **Request Timeout**: 30-second timeout prevents hanging requests
-- **Safety Settings**: Gemini safety filters configured at `BLOCK_MEDIUM_AND_ABOVE`
-- **CSP-Ready**: No inline event handlers in JS; all listeners attached programmatically
+- **Testing**: Automated test suite implemented using **Jest** (`tests/app.test.js`) to verify Gemini service initialization, retry logic, and HTML sanitization.
+- **Code Quality**: Enforced via **ESLint** (`.eslintrc.json`) to maintain strict JavaScript standards and minimize unused variables.
+- **Package Management**: Managed via standard `package.json` configurations.
+
+---
+
+## 🛡️ Security & Efficiency
+
+- **Security**: Strict XSS prevention by sanitizing all AI Markdown output before DOM injection. API keys are strictly kept in transient `sessionStorage`. 
+- **Efficiency**: Implemented Server-Sent Events (SSE) streaming for real-time AI responses, drastically reducing perceived latency. Built-in exponential backoff prevents 429 Rate Limit failures.
 
 ---
 
 ## ♿ Accessibility
 
-- Full **keyboard navigation** throughout
-- **ARIA labels** on all interactive elements
-- **Live regions** for dynamic content announcements
-- **Skip to content** link for screen reader users
-- **High contrast mode** toggle in footer
-- **Larger text** toggle in footer
-- Semantic HTML5 elements (`<nav>`, `<main>`, `<article>`, `<aside>`, `<footer>`)
-- Color contrast ratios meeting WCAG AA standards
+- **ARIA Attributes**: Full `aria-label`, `aria-live`, and `aria-hidden` support.
+- **Keyboard Navigation**: 100% accessible via `Tab` and `Enter`.
+- **WCAG Compliant**: High contrast mode, dynamic text scaling, and semantic HTML5 sections.
 
 ---
 
