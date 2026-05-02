@@ -212,6 +212,150 @@ const ELECTION_DATA = {
       ],
       correct: 1,
       explanation: 'The Electoral College is a body of 538 electors established by the US Constitution who formally cast votes to elect the President and Vice President. Each state\'s number of electors equals its total Congressional representation (House + Senate seats).'
+    },
+    {
+      id: 9,
+      question: 'What is a coalition government?',
+      options: [
+        'A government run by the military',
+        'A government formed by a single party with absolute majority',
+        'A government formed by two or more political parties working together',
+        'A government formed by independent candidates only'
+      ],
+      correct: 2,
+      explanation: 'A coalition government is formed when no single party wins a majority and two or more parties agree to govern together. Examples include Germany\'s frequent coalition governments and India\'s UPA/NDA coalitions.'
+    },
+    {
+      id: 10,
+      question: 'What is absentee voting?',
+      options: [
+        'Voting by a person who is absent from the electoral roll',
+        'Voting by mail or remote means when a voter cannot visit the polling station in person',
+        'Voting on behalf of someone who is absent',
+        'Voting against all candidates to register protest'
+      ],
+      correct: 1,
+      explanation: 'Absentee voting allows eligible voters who cannot physically visit their polling station (due to illness, travel, or military service) to vote by mail, electronically, or through proxy. Many countries expanded these options during COVID-19.'
+    },
+    {
+      id: 11,
+      question: 'What does NOTA stand for in Indian elections?',
+      options: [
+        'National Organization for Transparent Administration',
+        'None of the Above',
+        'Notice of Total Abstention',
+        'New Order for Transparent Allocation'
+      ],
+      correct: 1,
+      explanation: 'NOTA stands for "None of the Above" — introduced by the Supreme Court of India in 2013. It allows voters to officially register their disapproval of all contesting candidates without boycotting the election.'
+    },
+    {
+      id: 12,
+      question: 'What is the difference between a direct and indirect election?',
+      options: [
+        'Direct elections use paper ballots; indirect elections use electronic voting',
+        'In direct elections, citizens vote for candidates directly; in indirect elections, elected representatives vote on citizens\' behalf',
+        'Direct elections are held every 5 years; indirect elections every 10 years',
+        'There is no difference — they are the same'
+      ],
+      correct: 1,
+      explanation: 'In a direct election, citizens vote directly for their preferred candidate (e.g., India\'s Lok Sabha elections). In indirect elections, the public votes for representatives who then elect another official (e.g., India\'s Presidential election where MPs and MLAs vote).'
+    },
+    {
+      id: 13,
+      question: 'What is a plebiscite?',
+      options: [
+        'A formal debate between election candidates',
+        'A direct vote by all members of the electorate on a specific political question, often related to sovereignty',
+        'The process of counting votes in an election',
+        'A survey conducted before an election to gauge public opinion'
+      ],
+      correct: 1,
+      explanation: 'A plebiscite is a direct vote in which an entire electorate is asked to accept or reject a particular proposal, typically relating to national sovereignty or constitutional questions. The 2016 Brexit vote in the UK is a famous example.'
+    },
+    {
+      id: 14,
+      question: 'How does an Electronic Voting Machine (EVM) work in India?',
+      options: [
+        'Voters type their candidate\'s name on a keyboard',
+        'Voters press a button next to their preferred candidate\'s name and party symbol',
+        'Voters speak their candidate\'s name into a microphone',
+        'Voters scan a QR code to register their vote'
+      ],
+      correct: 1,
+      explanation: 'In India, EVMs are simple, battery-operated devices. The voter presses a blue button next to the candidate\'s name and party symbol on the Ballot Unit. A light and beep confirm the vote was recorded. VVPAT (Voter Verifiable Paper Audit Trail) provides a paper slip for verification.'
+    },
+    {
+      id: 15,
+      question: 'What is universal adult suffrage?',
+      options: [
+        'The right to vote granted only to taxpayers',
+        'The right of all adult citizens to vote regardless of wealth, gender, race, or education',
+        'The right to vote in local elections only',
+        'The right to stand as a candidate in elections'
+      ],
+      correct: 1,
+      explanation: 'Universal adult suffrage is the principle that all adult citizens have the right to vote, without discrimination based on wealth, income, gender, social status, race, ethnicity, or education. India adopted it from its very first election in 1951–52.'
+    },
+    {
+      id: 16,
+      question: 'What is a "whip" in parliamentary terms?',
+      options: [
+        'A punishment for lawmakers who break rules',
+        'A directive issued by a party to its members to vote in a particular way in parliament',
+        'A formal resignation letter submitted by an MP',
+        'The gavel used by the Speaker of the House'
+      ],
+      correct: 1,
+      explanation: 'A party whip is an official instruction issued by a political party to its legislators, directing them to attend parliamentary sessions and vote according to the party line. Defying a three-line whip can result in disqualification under India\'s anti-defection law.'
+    },
+    {
+      id: 17,
+      question: 'What is voter suppression?',
+      options: [
+        'When voters choose not to vote voluntarily',
+        'Illegal or legal tactics used to prevent eligible citizens from exercising their right to vote',
+        'The suppression of election results by media',
+        'When candidates suppress their emotions during debates'
+      ],
+      correct: 1,
+      explanation: 'Voter suppression refers to strategies designed to discourage or prevent specific groups from voting. Tactics include restrictive ID laws, purging voter rolls, reducing polling stations in minority areas, or spreading disinformation about voting dates.'
+    },
+    {
+      id: 18,
+      question: 'What is the Rajya Sabha in India?',
+      options: [
+        'The lower house of the Indian Parliament',
+        'The Supreme Court\'s legislative advisory body',
+        'The upper house of the Indian Parliament, also called the Council of States',
+        'The committee that manages election campaigns'
+      ],
+      correct: 2,
+      explanation: 'The Rajya Sabha (Council of States) is the upper house of India\'s bicameral Parliament. Its 250 members are elected indirectly by State and UT Legislative Assemblies (238 seats) and nominated by the President (12 seats). Unlike the Lok Sabha, it is not subject to dissolution.'
+    },
+    {
+      id: 19,
+      question: 'What is the purpose of a recall election?',
+      options: [
+        'To recount votes in a disputed election',
+        'To allow voters to remove an elected official from office before their term ends',
+        'To recall expired voter ID cards for renewal',
+        'To reschedule an election that was postponed'
+      ],
+      correct: 1,
+      explanation: 'A recall election gives voters the power to remove an elected official before their term ends. If enough citizens sign a petition, a special election is held. This exists in several US states and some other democracies but is not currently used in India\'s national elections.'
+    },
+    {
+      id: 20,
+      question: 'What is the purpose of delimitation?',
+      options: [
+        'To decide the salary of elected officials',
+        'To redraw the boundaries of electoral constituencies to reflect population changes',
+        'To limit the number of candidates in an election',
+        'To delete names from the electoral roll'
+      ],
+      correct: 1,
+      explanation: 'Delimitation is the process of redrawing the boundaries of Lok Sabha and state Assembly constituencies based on census population data, ensuring roughly equal representation. In India, a Delimitation Commission (appointed by the President) handles this process.'
     }
   ],
 
@@ -238,9 +382,20 @@ const ELECTION_DATA = {
     { term: 'Turnout', definition: 'The percentage of eligible voters who actually cast a ballot in a given election. Higher turnout is generally considered healthier for democracy.' },
     { term: 'Veto', definition: 'The constitutional right of a head of state or legislative chamber to reject a bill or decision.' },
     { term: 'Whip', definition: 'A party official responsible for ensuring members of parliament attend and vote in line with party direction.' },
-    { term: 'Electoral Roll', definition: 'The official list of all registered voters eligible to participate in an election. Also called the voter list or register.' }
+    { term: 'Electoral Roll', definition: 'The official list of all registered voters eligible to participate in an election. Also called the voter list or register.' },
+    { term: 'Anti-Defection Law', definition: 'A law that penalizes elected legislators for switching parties after being elected. India\'s 52nd Amendment (1985) disqualifies defecting MPs/MLAs.' },
+    { term: 'Bicameral Legislature', definition: 'A legislature consisting of two chambers or houses, such as India\'s Lok Sabha (lower) and Rajya Sabha (upper), or the US House and Senate.' },
+    { term: 'Campaign Finance', definition: 'Laws and regulations governing how money is raised and spent by candidates and parties during elections to prevent corruption and ensure fairness.' },
+    { term: 'Delimitation', definition: 'The process of redrawing the boundaries of electoral constituencies to ensure equal representation based on population changes.' },
+    { term: 'EVM (Electronic Voting Machine)', definition: 'A battery-powered electronic device used in India to record and count votes. Paired with VVPAT for transparency.' },
+    { term: 'Floor Test', definition: 'A process in parliament where the ruling party or coalition proves it commands a majority of seats through a vote of confidence.' },
+    { term: 'Independent Candidate', definition: 'A candidate who stands for election without affiliation to any political party. They are identified by unique election symbols.' },
+    { term: 'Mid-Term Election', definition: 'An election held in the middle of a head of state\'s term. In the US, mid-terms elect Congress members between presidential elections.' },
+    { term: 'Plebiscite', definition: 'A direct public vote on a major political question, often related to sovereignty, territorial boundaries, or constitutional changes.' },
+    { term: 'VVPAT', definition: 'Voter Verifiable Paper Audit Trail — a device attached to EVMs in India that prints a paper slip showing the voter\'s choice for verification.' }
   ]
 };
 
 // Make data globally accessible
 window.ELECTION_DATA = ELECTION_DATA;
+

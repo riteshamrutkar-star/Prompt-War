@@ -14,6 +14,9 @@ const QuizModule = (() => {
   let currentDifficulty = 'medium';
   let isAIMode = false;
   let isGenerating = false;
+  let timerInterval = null;
+  let timeLeft = 0;
+  const QUESTION_TIME = 30; // seconds per question
 
   /* ── helpers ── */
   function shuffle(arr) {
@@ -66,6 +69,14 @@ const QuizModule = (() => {
 
     const letters = ['A','B','C','D'];
     content.innerHTML = `
+      <div class="quiz-timer" id="quizTimer">
+        <svg class="timer-ring" viewBox="0 0 36 36">
+          <circle class="timer-bg" cx="18" cy="18" r="15.9"/>
+          <circle class="timer-fill" id="timerFill" cx="18" cy="18" r="15.9"
+            stroke-dasharray="100, 100" stroke-dashoffset="0"/>
+        </svg>
+        <span class="timer-text" id="timerText">${QUESTION_TIME}</span>
+      </div>
       <div class="quiz-question" id="quiz-question-${q.id}">${q.question}</div>
       <div class="quiz-options" role="group" aria-labelledby="quiz-question-${q.id}">
         ${q.options.map((opt, i) => `
@@ -81,12 +92,70 @@ const QuizModule = (() => {
       </div>
       <div id="quizExplanation" hidden></div>
       <button class="quiz-btn" id="nextBtn" disabled aria-label="Next question">
-        ${index === activeQuestions.length - 1 ? 'See Results 🎉' : 'Next Question →'}
+        ${index === activeQuestions.length - 1 ? 'See Results \ud83c\udf89' : 'Next Question \u2192'}
       </button>
     `;
 
     updateMeta();
+    startTimer();
     bindOptionListeners(q);
+  }
+
+  /* ── timer ── */
+  function startTimer() {
+    stopTimer();
+    timeLeft = QUESTION_TIME;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) {
+        stopTimer();
+        autoTimeout();
+      }
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
+
+  function updateTimerDisplay() {
+    const textEl = document.getElementById('timerText');
+    const fillEl = document.getElementById('timerFill');
+    if (textEl) textEl.textContent = timeLeft;
+    if (fillEl) {
+      const pct = ((QUESTION_TIME - timeLeft) / QUESTION_TIME) * 100;
+      fillEl.style.strokeDashoffset = pct;
+      // Color transitions: green -> yellow -> red
+      if (timeLeft <= 5) fillEl.style.stroke = '#EF4444';
+      else if (timeLeft <= 10) fillEl.style.stroke = '#F59E0B';
+      else fillEl.style.stroke = '#10B981';
+    }
+  }
+
+  function autoTimeout() {
+    if (answered) return;
+    answered = true;
+    const q = activeQuestions[currentQuestion];
+    wrongAnswers.push(q);
+
+    const options = document.querySelectorAll('.quiz-option');
+    options.forEach((b, i) => {
+      b.disabled = true;
+      if (i === q.correct) b.classList.add('correct');
+    });
+
+    const explanationEl = document.getElementById('quizExplanation');
+    if (explanationEl) {
+      explanationEl.hidden = false;
+      explanationEl.className = 'quiz-explanation';
+      explanationEl.innerHTML = `<strong>\u23f0 Time's up!</strong> ${q.explanation}`;
+    }
+
+    const nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) { nextBtn.disabled = false; nextBtn.focus(); }
+    updateMeta();
   }
 
   function bindOptionListeners(q) {
@@ -98,6 +167,7 @@ const QuizModule = (() => {
       btn.addEventListener('click', () => {
         if (answered) return;
         answered = true;
+        stopTimer();
 
         const isCorrect = idx === q.correct;
         if (isCorrect) {
@@ -155,18 +225,28 @@ const QuizModule = (() => {
         <span class="quiz-result-emoji" aria-hidden="true">${emoji}</span>
         <h3>${message}</h3>
         <div class="quiz-final-score" aria-label="${score} out of ${activeQuestions.length} correct, ${pct}%">
-          ${score}/${activeQuestions.length} — ${pct}%
+          ${score}/${activeQuestions.length} \u2014 ${pct}%
         </div>
         <p>${getEncouragement(pct)}</p>
 
         <div class="quiz-result-actions">
-          <button class="quiz-btn" id="restartQuiz" aria-label="Restart the quiz">🔄 Try Again</button>
-          <button class="quiz-btn quiz-btn-ai" id="askAI" aria-label="Ask AI about election topics">✨ Ask AI to Explain More</button>
+          <button class="quiz-btn" id="restartQuiz" aria-label="Restart the quiz">\ud83d\udd04 Try Again</button>
+          <button class="quiz-btn quiz-btn-ai" id="askAI" aria-label="Ask AI about election topics">\u2728 Ask AI to Explain More</button>
+        </div>
+
+        <div class="share-results-section">
+          <h4 class="share-title">\ud83d\udce3 Share Your Score</h4>
+          <div class="share-buttons">
+            <button class="share-btn share-twitter" id="shareTwitter" aria-label="Share on Twitter">\ud83d\udc26 Twitter/X</button>
+            <button class="share-btn share-whatsapp" id="shareWhatsApp" aria-label="Share on WhatsApp">\ud83d\udcac WhatsApp</button>
+            <button class="share-btn share-linkedin" id="shareLinkedIn" aria-label="Share on LinkedIn">\ud83d\udcbc LinkedIn</button>
+            <button class="share-btn share-copy" id="shareCopy" aria-label="Copy share link">\ud83d\udccb Copy</button>
+          </div>
         </div>
 
         <div class="civic-report-section" id="civicReportSection">
           <button class="quiz-btn quiz-btn-report" id="generateReportBtn" aria-label="Generate your personalized civic readiness report">
-            🧠 Generate My Civic Readiness Report
+            \ud83e\udde0 Generate My Civic Readiness Report
           </button>
           <div class="civic-report-output" id="civicReportOutput" hidden></div>
         </div>
@@ -174,6 +254,7 @@ const QuizModule = (() => {
     `;
 
     document.getElementById('restartQuiz')?.addEventListener('click', restart);
+    bindShareButtons(score, activeQuestions.length, pct);
 
     document.getElementById('askAI')?.addEventListener('click', () => {
       scrollToSection('assistant');
@@ -292,13 +373,35 @@ const QuizModule = (() => {
     score            = 0;
     answered         = false;
     wrongAnswers     = [];
+    stopTimer();
     if (isAIMode) {
-      // Re-shuffle AI questions
       activeQuestions = shuffleWithAnswers(activeQuestions);
     } else {
       activeQuestions = shuffleWithAnswers([...ELECTION_DATA.quizQuestions]);
     }
     renderQuestion(0);
+  }
+
+  /* ── share ── */
+  function bindShareButtons(sc, total, pct) {
+    const shareText = `I scored ${sc}/${total} (${pct}%) on ElectIQ's Civic Knowledge Quiz! \ud83d\uddf3\ufe0f Test your election knowledge: `;
+    const shareUrl  = window.location.href;
+
+    document.getElementById('shareTwitter')?.addEventListener('click', () => {
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+    });
+    document.getElementById('shareWhatsApp')?.addEventListener('click', () => {
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareText + shareUrl)}`, '_blank');
+    });
+    document.getElementById('shareLinkedIn')?.addEventListener('click', () => {
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
+    });
+    document.getElementById('shareCopy')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(shareText + shareUrl).then(() => {
+        const btn = document.getElementById('shareCopy');
+        if (btn) { btn.textContent = '\u2705 Copied!'; setTimeout(() => { btn.textContent = '\ud83d\udccb Copy'; }, 2000); }
+      });
+    });
   }
 
   /* ── init ── */

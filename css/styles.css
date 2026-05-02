@@ -550,6 +550,28 @@ body {
 .glossary-def { font-size: .85rem; color: var(--text-muted); line-height: 1.55; }
 .glossary-item[hidden] { display: none; }
 
+/* Glossary Ask AI button */
+.glossary-ask-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .65rem;
+  padding: .3rem .7rem;
+  background: linear-gradient(135deg, rgba(108,99,255,0.12), rgba(245,158,11,0.08));
+  border: 1px solid rgba(108,99,255,0.25);
+  border-radius: 50px;
+  color: var(--primary-light);
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.glossary-ask-ai-btn:hover {
+  background: rgba(108,99,255,0.22);
+  border-color: rgba(108,99,255,0.45);
+  transform: translateX(2px);
+}
+
 /* ====================================================
    FOOTER
    ==================================================== */
@@ -697,6 +719,79 @@ body {
   display: flex; gap: .75rem; flex-wrap: wrap;
   justify-content: center; margin: 1rem 0;
 }
+
+/* Quiz Timer */
+.quiz-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin-left: auto;
+  margin-right: 0;
+}
+.timer-ring {
+  width: 56px;
+  height: 56px;
+  transform: rotate(-90deg);
+}
+.timer-bg {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 2;
+}
+.timer-fill {
+  fill: none;
+  stroke: #10B981;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear, stroke 0.5s ease;
+}
+.timer-text {
+  position: absolute;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Share Results */
+.share-results-section {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.share-title {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: .65rem;
+  text-align: center;
+}
+.share-buttons {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.share-btn {
+  padding: .4rem .85rem;
+  border-radius: 50px;
+  font-size: .78rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--surface);
+  color: var(--text);
+}
+.share-btn:hover { transform: translateY(-1px); }
+.share-twitter:hover  { background: rgba(29,161,242,0.15); border-color: #1DA1F2; color: #1DA1F2; }
+.share-whatsapp:hover { background: rgba(37,211,102,0.15); border-color: #25D366; color: #25D366; }
+.share-linkedin:hover { background: rgba(10,102,194,0.15); border-color: #0A66C2; color: #0A66C2; }
+.share-copy:hover     { background: rgba(108,99,255,0.15); border-color: var(--primary); color: var(--primary-light); }
 .civic-report-section {
   margin-top: 1.5rem;
   border-top: 1px solid var(--border);

@@ -107,22 +107,26 @@ ElectIQ: Voter registration is the process of officially adding your name to the
     const parts = [{ text: userMessage }];
     if (imagePart) parts.unshift(imagePart);
 
-    conversationHistory.push({ role: 'user', parts });
+    // Stage the user message (will be committed on success)
+    const userEntry = { role: 'user', parts };
+    const stagedHistory = [...conversationHistory, userEntry].slice(-20);
 
-    const recentHistory = conversationHistory.slice(-20);
     return {
-      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: recentHistory,
-      generationConfig: {
-        temperature: 0.7, topK: 40, topP: 0.95,
-        maxOutputTokens: 1024, candidateCount: 1
-      },
-      safetySettings: [
-        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
-      ]
+      userEntry,
+      body: {
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: stagedHistory,
+        generationConfig: {
+          temperature: 0.7, topK: 40, topP: 0.95,
+          maxOutputTokens: 1024, candidateCount: 1
+        },
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }
+        ]
+      }
     };
   }
 
@@ -142,7 +146,7 @@ ElectIQ: Voter registration is the process of officially adding your name to the
     if (!sanitizedMsg) throw new Error('Message cannot be empty');
 
     const url = `${STREAM_ENDPOINT}&key=${encodeURIComponent(apiKey)}`;
-    const body = buildRequestBody(sanitizedMsg, imagePart);
+    const { userEntry, body } = buildRequestBody(sanitizedMsg, imagePart);
 
     let lastError;
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -188,7 +192,6 @@ ElectIQ: Voter registration is the process of officially adding your name to the
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
-          // Each SSE chunk may contain multiple data: lines
           for (const line of chunk.split('\n')) {
             if (!line.startsWith('data: ')) continue;
             const jsonStr = line.slice(6).trim();
@@ -204,13 +207,14 @@ ElectIQ: Voter registration is the process of officially adding your name to the
               if (finishReason === 'SAFETY') throw new Error('SAFETY_FILTER');
             } catch (parseErr) {
               if (parseErr.message === 'SAFETY_FILTER') throw parseErr;
-              // ignore malformed JSON lines
             }
           }
         }
 
         if (!fullText) throw new Error('Empty response from AI');
 
+        // SUCCESS: commit to conversation history
+        conversationHistory.push(userEntry);
         conversationHistory.push({ role: 'model', parts: [{ text: fullText }] });
         return fullText;
 
@@ -221,6 +225,7 @@ ElectIQ: Voter registration is the process of officially adding your name to the
         lastError = err;
       }
     }
+    // ALL retries failed — do NOT commit to history
     if (lastError?.message === 'RATE_LIMIT') throw new Error('RATE_LIMIT');
     throw lastError || new Error('Failed after retries');
   }
@@ -362,50 +367,14 @@ Generate a personalized "Civic Readiness Report" that:
 
 Format it clearly with emoji, bold headings, and bullet points. Make it feel like a personal letter from a civic mentor, not a generic report. Keep it under 300 words.`;
 
-    // Don't add to conversation history (this is a one-off structured output)
-    const imagePart = null;
-    const apiKey = getApiKey();
-    if (!apiKey) throw new Error('NO_API_KEY');
+    // Reuse the full streaming pipeline (gets retries + rate limit handling for free)
+    const result = await sendMessageStream(prompt, onChunk);
 
-    const body = buildRequestBody(prompt, null);
-    // Remove from history since this is a utility call
-    conversationHistory.pop();
+    // Remove the report Q&A from conversation history so it doesn't pollute chat
+    // (sendMessageStream committed them on success)
+    conversationHistory.splice(-2, 2);
 
-    const url = `${STREAM_ENDPOINT}&key=${encodeURIComponent(apiKey)}`;
-    const controller = new AbortController();
-    const timeoutId  = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const reader  = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText  = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      for (const line of chunk.split('\n')) {
-        if (!line.startsWith('data: ')) continue;
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === '[DONE]') continue;
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const token  = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (token) { fullText += token; onChunk(token); }
-        } catch { /* ignore */ }
-      }
-    }
-
-    return fullText;
+    return result;
   }
 
   // ─── ERROR MESSAGES ──────────────────────────────────────────────────────────
