@@ -14,6 +14,7 @@ ElectIQ is an AI-powered, interactive web application that helps users understan
 | 📋 **8-Step Process Guide** | Interactive, filterable cards covering Pre-Election → Election Day → Post-Election |
 | 📅 **Interactive Timeline** | Visual election calendar for General, Primary, and Local elections |
 | 🧠 **Knowledge Quiz** | 8-question adaptive quiz with instant feedback and explanations |
+| 🌍 **Multi-Language Support** | Instant translation to Hindi, Marathi, Bengali, Tamil, Telugu, and more using Google Translate |
 | 📖 **Election Glossary** | 20+ searchable election terms with definitions |
 | ♿ **Accessibility First** | WCAG-compliant with keyboard nav, ARIA labels, high-contrast mode, large text |
 

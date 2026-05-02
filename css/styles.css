@@ -852,3 +852,43 @@ body {
   accent-color: var(--primary);
   width: 14px; height: 14px;
 }
+
+/* ====================================================
+   GOOGLE TRANSLATE WIDGET
+   ==================================================== */
+.translate-widget {
+  margin: 0 10px;
+  display: flex;
+  align-items: center;
+}
+.goog-te-gadget {
+  font-family: var(--font-main) !important;
+  color: transparent !important; /* Hides the "Powered by Google" text */
+  font-size: 0 !important;
+}
+.goog-te-gadget .goog-te-combo {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-main);
+  margin: 0;
+}
+.goog-te-gadget .goog-te-combo:hover,
+.goog-te-gadget .goog-te-combo:focus {
+  border-color: var(--primary);
+  color: var(--text);
+}
+/* Hide the top frame banner */
+.skiptranslate iframe,
+body > .skiptranslate {
+  display: none !important;
+}
+body {
+  top: 0px !important; 
+}
