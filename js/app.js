@@ -187,44 +187,150 @@ function initSmoothLinks() {
 }
 
 /* =============================================
+   BALLOT IMAGE ANALYZER
+   ============================================= */
+function initBallotAnalyzer() {
+  const uploadZone  = document.getElementById('ballotUploadZone');
+  const fileInput   = document.getElementById('ballotFileInput');
+  if (!uploadZone || !fileInput) return;
+
+  // Click to open file picker
+  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  });
+
+  // Drag-and-drop
+  uploadZone.addEventListener('dragover', e => {
+    e.preventDefault(); uploadZone.classList.add('drag-over');
+  });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processImageFile(file);
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (file) processImageFile(file);
+    fileInput.value = ''; // reset so same file can be re-uploaded
+  });
+
+  function processImageFile(file) {
+    if (!file.type.startsWith('image/')) {
+      showToast('Please upload an image file (JPG, PNG, WEBP)', 'error'); return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      showToast('Image must be under 4MB', 'error'); return;
+    }
+    if (!GeminiService.hasApiKey()) {
+      showToast('Enter your Gemini API key first to use the Ballot Analyzer!', 'error');
+      return;
+    }
+
+    // Show preview and scroll to chat
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl   = e.target.result;
+      const base64    = dataUrl.split(',')[1];
+      const mimeType  = file.type;
+
+      // Add a user message showing the uploaded image
+      scrollToSection('assistant');
+
+      setTimeout(async () => {
+        const chatMessages = document.getElementById('chatMessages');
+        const userMsg = document.createElement('div');
+        userMsg.className = 'message user-message';
+        userMsg.innerHTML = `
+          <div class="message-avatar" aria-hidden="true">👤</div>
+          <div class="message-bubble">
+            <div class="message-header">
+              <span class="message-sender">You</span>
+              <span class="message-time">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+            </div>
+            <div class="message-text">
+              <p>📷 <strong>Uploaded image for analysis</strong></p>
+              <img src="${dataUrl}" alt="Uploaded ballot image" style="max-width:200px;border-radius:8px;margin-top:.5rem;display:block;" />
+            </div>
+          </div>
+        `;
+        chatMessages.appendChild(userMsg);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Stream the AI analysis into a bot bubble
+        const botMsg  = document.createElement('div');
+        botMsg.className = 'message bot-message';
+        const botId   = `ballot-${Date.now()}`;
+        botMsg.innerHTML = `
+          <div class="message-avatar" aria-hidden="true">🤖</div>
+          <div class="message-bubble">
+            <div class="message-header">
+              <span class="message-sender">ElectIQ Assistant</span>
+              <span class="message-time">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+            </div>
+            <div class="message-text" id="${botId}">
+              <p><em>🔍 Analyzing your image...</em></p>
+            </div>
+            <div class="message-actions">
+              <button class="msg-action-btn" onclick="ChatUI.copyMessage(this)" aria-label="Copy this message">📋 Copy</button>
+            </div>
+          </div>
+        `;
+        chatMessages.appendChild(botMsg);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        const textEl = document.getElementById(botId);
+        let accumulated = '';
+
+        try {
+          await GeminiService.analyzeImage(base64, mimeType, (token) => {
+            accumulated += token;
+            // Simple markdown render inline
+            textEl.innerHTML = accumulated
+              .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\n/g, '<br>');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          });
+          showToast('Image analyzed!', 'success');
+        } catch (err) {
+          textEl.innerHTML = `<p style="color:var(--danger)">${GeminiService.getErrorMessage(err)}</p>`;
+        }
+      }, 500);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+/* =============================================
    INIT
    ============================================= */
 document.addEventListener('DOMContentLoaded', () => {
-  // Load accessibility prefs
   loadAccessibilityPrefs();
-
-  // Init navbar
   initNavbar();
-
-  // Init particles
   initParticles();
 
-  // Init all modules
   ProcessModule.render();
   TimelineModule.init();
   QuizModule.init();
   GlossaryModule.render();
   ChatUI.init();
+  initBallotAnalyzer();
 
-  // Smooth links
   initSmoothLinks();
-
-  // Reveal animations (initial pass)
   setTimeout(initReveal, 100);
 
-  // Keyboard shortcuts
   document.addEventListener('keydown', e => {
-    // Ctrl+/ or ? to focus chat input
     if ((e.ctrlKey && e.key === '/') || (e.key === '?' && !e.target.matches('input, textarea'))) {
       e.preventDefault();
       scrollToSection('assistant');
       setTimeout(() => document.getElementById('chatInput')?.focus(), 500);
     }
-    // Esc to close mobile menu
     if (e.key === 'Escape') closeMobileMenu();
   });
 
-  console.info('🗳️ ElectIQ loaded. Powered by Google Gemini. Built for PromptWars Virtual.');
+  console.info('🗳️ ElectIQ v2.0 loaded. Streaming | Vision | AI Quiz | Civic Report. Built for PromptWars Virtual.');
 });
 
 // Expose globals needed by inline HTML handlers

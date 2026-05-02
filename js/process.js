@@ -1,5 +1,6 @@
 /**
  * ElectIQ – Process Steps Module
+ * Shows election step cards with expandable details + Ask AI integration
  */
 'use strict';
 
@@ -11,6 +12,7 @@ const ProcessModule = (() => {
     card.setAttribute('tabindex', '0');
     card.setAttribute('data-category', step.category);
     card.setAttribute('aria-label', `Step ${step.id}: ${step.title}`);
+    card.setAttribute('aria-expanded', 'false');
 
     card.innerHTML = `
       <div class="process-card-number" aria-hidden="true">0${step.id}</div>
@@ -18,25 +20,57 @@ const ProcessModule = (() => {
       <h3>${step.title}</h3>
       <p>${step.description}</p>
       <span class="process-tag ${step.category}" aria-label="Category: ${step.categoryLabel}">${step.categoryLabel}</span>
-      <ul class="process-details" aria-label="Key details" style="display:none;margin-top:.75rem;padding-left:1.2rem;">
-        ${step.details.map(d => `<li style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">${d}</li>`).join('')}
-      </ul>
+
+      <div class="process-details-block" hidden>
+        <ul class="process-details-list" aria-label="Key details for ${step.title}">
+          ${step.details.map(d => `<li>${d}</li>`).join('')}
+        </ul>
+        <button
+          class="process-ask-ai-btn"
+          data-question="Explain Step ${step.id} of the election process: '${step.title}'. Give me a detailed breakdown with real-world examples."
+          aria-label="Ask AI to explain ${step.title}"
+        >
+          ✨ Ask AI to Explain This Step
+        </button>
+      </div>
+
+      <button class="process-toggle-btn" aria-label="Show details for ${step.title}" aria-expanded="false">
+        <span class="toggle-label">Show Details</span>
+        <span class="toggle-chevron" aria-hidden="true">›</span>
+      </button>
     `;
 
-    // Toggle details on click/keypress
-    card.addEventListener('click', () => toggleDetails(card));
+    // Toggle details block
+    const toggleBtn = card.querySelector('.process-toggle-btn');
+    const detailsBlock = card.querySelector('.process-details-block');
+
+    function toggle(e) {
+      e.stopPropagation();
+      const isOpen = !detailsBlock.hidden;
+      detailsBlock.hidden = isOpen;
+      card.setAttribute('aria-expanded', String(!isOpen));
+      toggleBtn.setAttribute('aria-expanded', String(!isOpen));
+      toggleBtn.querySelector('.toggle-label').textContent = isOpen ? 'Show Details' : 'Hide Details';
+      toggleBtn.querySelector('.toggle-chevron').style.transform = isOpen ? '' : 'rotate(90deg)';
+    }
+
+    toggleBtn.addEventListener('click', toggle);
     card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDetails(card); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(e); }
+    });
+
+    // Ask AI button
+    const askAiBtn = card.querySelector('.process-ask-ai-btn');
+    askAiBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const question = askAiBtn.getAttribute('data-question');
+      scrollToSection('assistant');
+      setTimeout(() => {
+        ChatUI.sendMessage(question);
+      }, 600);
     });
 
     return card;
-  }
-
-  function toggleDetails(card) {
-    const details = card.querySelector('.process-details');
-    const isHidden = details.style.display === 'none';
-    details.style.display = isHidden ? 'block' : 'none';
-    card.setAttribute('aria-expanded', String(isHidden));
   }
 
   function render() {

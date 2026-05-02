@@ -226,6 +226,31 @@
           <p class="section-subtitle">How well do you know the election process? Let's find out!</p>
         </div>
         <div class="quiz-container" id="quizContainer">
+          <!-- AI Quiz Generator Controls -->
+          <div class="ai-quiz-controls" id="aiQuizControls">
+            <div class="ai-quiz-header">
+              <span class="quiz-mode-tag" id="quizModeTag">📚 Standard</span>
+              <button class="quiz-btn-sm" id="resetToStandardBtn" aria-label="Reset to standard quiz">↩ Standard</button>
+            </div>
+            <div class="ai-quiz-generator">
+              <input
+                type="text"
+                id="aiQuizTopic"
+                class="ai-quiz-input"
+                placeholder="Enter a topic (e.g. Electoral College, Voter Rights)..."
+                aria-label="Quiz topic for AI generation"
+              />
+              <div class="difficulty-selector" role="group" aria-label="Select difficulty">
+                <button class="difficulty-btn" data-difficulty="easy" aria-pressed="false">🟢 Easy</button>
+                <button class="difficulty-btn active" data-difficulty="medium" aria-pressed="true">🟡 Medium</button>
+                <button class="difficulty-btn" data-difficulty="hard" aria-pressed="false">🔴 Hard</button>
+              </div>
+              <button class="quiz-btn quiz-btn-ai" id="generateAIQuizBtn" aria-label="Generate AI quiz questions">
+                🤖 Generate AI Quiz
+              </button>
+            </div>
+          </div>
+
           <div class="quiz-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Quiz progress">
             <div class="quiz-progress-fill" id="quizProgressFill"></div>
           </div>
@@ -299,6 +324,10 @@
                   <button class="api-key-toggle" id="apiKeyToggle" aria-label="Toggle API key visibility" aria-pressed="false">👁️</button>
                 </div>
                 <button class="save-key-btn" id="saveKeyBtn" aria-label="Save API key">Save Key</button>
+                <label class="remember-key-label">
+                  <input type="checkbox" id="rememberKeyChk" aria-label="Remember API key on this device" />
+                  <span>Remember on this device</span>
+                </label>
                 <p class="api-note">
                   Get your free key at
                   <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" aria-label="Get Gemini API key from Google AI Studio (opens in new tab)">
@@ -307,6 +336,23 @@
                 </p>
               </div>
             </div>
+            <div class="sidebar-section">
+              <h3 class="sidebar-title">🖼️ Ballot Analyzer</h3>
+              <p class="ballot-analyzer-desc">Upload a ballot, voter card, or election notice for AI analysis.</p>
+              <div
+                class="ballot-upload-zone"
+                id="ballotUploadZone"
+                role="button"
+                tabindex="0"
+                aria-label="Upload ballot image for AI analysis"
+              >
+                <span class="upload-icon" aria-hidden="true">📄</span>
+                <span class="upload-label">Drop image here or click to upload</span>
+                <span class="upload-formats">JPG, PNG, WEBP — max 4MB</span>
+              </div>
+              <input type="file" id="ballotFileInput" accept="image/*" class="sr-only" aria-label="Choose ballot image file" />
+            </div>
+
             <div class="sidebar-section">
               <h3 class="sidebar-title">Chat Actions</h3>
               <button class="action-btn" id="clearChatBtn" aria-label="Clear all chat messages">

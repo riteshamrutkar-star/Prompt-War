@@ -1,6 +1,6 @@
 /**
  * ElectIQ – Chat UI Module
- * Handles all chat interface interactions
+ * Handles all chat interface interactions with streaming support
  */
 
 'use strict';
@@ -10,19 +10,21 @@ const ChatUI = (() => {
 
   /* ---------- DOM refs ---------- */
   const $ = id => document.getElementById(id);
-  const chatMessages = $('chatMessages');
-  const chatInput = $('chatInput');
-  const sendBtn = $('sendBtn');
-  const charCount = $('charCount');
+  const chatMessages    = $('chatMessages');
+  const chatInput       = $('chatInput');
+  const sendBtn         = $('sendBtn');
+  const charCount       = $('charCount');
   const typingIndicator = $('typingIndicator');
-  const apiBanner = $('apiBanner');
-  const apiBannerText = $('apiBannerText');
-  const apiKeyInput = $('apiKeyInput');
-  const apiKeyToggle = $('apiKeyToggle');
-  const saveKeyBtn = $('saveKeyBtn');
-  const clearChatBtn = $('clearChatBtn');
-  const exportChatBtn = $('exportChatBtn');
-  const liveRegion = $('liveRegion');
+  const typingText      = $('typingText');
+  const apiBanner       = $('apiBanner');
+  const apiBannerText   = $('apiBannerText');
+  const apiKeyInput     = $('apiKeyInput');
+  const apiKeyToggle    = $('apiKeyToggle');
+  const saveKeyBtn      = $('saveKeyBtn');
+  const rememberKeyChk  = $('rememberKeyChk');
+  const clearChatBtn    = $('clearChatBtn');
+  const exportChatBtn   = $('exportChatBtn');
+  const liveRegion      = $('liveRegion');
 
   /* ---------- Helpers ---------- */
   function formatTime() {
@@ -37,23 +39,15 @@ const ChatUI = (() => {
 
   /**
    * Convert markdown-like text to safe HTML
-   * Supports: **bold**, *italic*, `code`, bullet lists, numbered lists, headings
    */
   function formatResponse(text) {
     let html = sanitizeHTML(text);
 
-    // Headings
     html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h3>$1</h3>');
-
-    // Bold
+    html = html.replace(/^## (.+)$/gm,  '<h3>$1</h3>');
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-    // Italic
-    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-    // Inline code
-    html = html.replace(/`(.+?)`/g, '<code>$1</code>');
+    html = html.replace(/\*(.+?)\*/g,    '<em>$1</em>');
+    html = html.replace(/`(.+?)`/g,      '<code>$1</code>');
 
     // Numbered list
     html = html.replace(/(?:^|\n)(\d+\. .+)/g, (m, item) => `<li>${item.replace(/^\d+\. /, '')}</li>`);
@@ -61,7 +55,7 @@ const ChatUI = (() => {
 
     // Bullet list
     html = html.replace(/(?:^|\n)[•\-\*] (.+)/g, (m, item) => `<li>${item}</li>`);
-    html = html.replace(/(?<![<\/])(<li>[\s\S]*?<\/li>)+(?!<\/ol)/g, m => `<ul>${m}</ul>`);
+    html = html.replace(/(?<!<\/)((<li>[\s\S]*?<\/li>)+)(?!<\/ol)/g, m => `<ul>${m}</ul>`);
 
     // Paragraphs
     const lines = html.split(/\n\n+/);
@@ -76,15 +70,13 @@ const ChatUI = (() => {
   }
 
   /**
-   * Append a message to the chat
-   * @param {'user'|'bot'|'error'} role
-   * @param {string} text
-   * @returns {HTMLElement} The message element
+   * Append a message bubble and return a function to update its text content
+   * (used for streaming)
    */
-  function appendMessage(role, text) {
-    const isUser = role === 'user';
+  function appendMessage(role, text = '') {
+    const isUser  = role === 'user';
     const isError = role === 'error';
-    const msgId = `msg-${Date.now()}`;
+    const msgId   = `msg-${Date.now()}`;
 
     const msgEl = document.createElement('div');
     msgEl.className = `message ${isUser ? 'user-message' : 'bot-message'} ${isError ? 'error-message' : ''}`;
@@ -92,16 +84,17 @@ const ChatUI = (() => {
     msgEl.setAttribute('role', 'article');
     msgEl.setAttribute('aria-label', `${isUser ? 'You' : 'Assistant'}: ${text.slice(0, 100)}`);
 
-    const content = isUser ? `<p>${sanitizeHTML(text)}</p>` : formatResponse(text);
+    const avatarEmoji = isUser ? '👤' : isError ? '⚠️' : '🤖';
+    const senderLabel = isUser ? 'You' : 'ElectIQ Assistant';
 
     msgEl.innerHTML = `
-      <div class="message-avatar" aria-hidden="true">${isUser ? '👤' : isError ? '⚠️' : '🤖'}</div>
+      <div class="message-avatar" aria-hidden="true">${avatarEmoji}</div>
       <div class="message-bubble">
         <div class="message-header">
-          <span class="message-sender">${isUser ? 'You' : 'ElectIQ Assistant'}</span>
+          <span class="message-sender">${senderLabel}</span>
           <span class="message-time" aria-label="Sent at ${formatTime()}">${formatTime()}</span>
         </div>
-        <div class="message-text">${content}</div>
+        <div class="message-text" id="${msgId}-text">${isUser ? `<p>${sanitizeHTML(text)}</p>` : formatResponse(text)}</div>
         ${!isUser ? `<div class="message-actions">
           <button class="msg-action-btn" onclick="ChatUI.copyMessage(this)" aria-label="Copy this message">📋 Copy</button>
         </div>` : ''}
@@ -110,14 +103,29 @@ const ChatUI = (() => {
 
     chatMessages.appendChild(msgEl);
     scrollToBottom();
-    return msgEl;
+
+    // Return a streaming updater function
+    const textEl = msgEl.querySelector(`#${msgId}-text`);
+    return {
+      el: msgEl,
+      /** Call with accumulated text to update the bubble live */
+      updateStream(accumulated) {
+        textEl.innerHTML = formatResponse(accumulated);
+        scrollToBottom();
+      },
+      finalize(fullText) {
+        textEl.innerHTML = formatResponse(fullText);
+        scrollToBottom();
+      }
+    };
   }
 
   function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function showTyping() {
+  function showTyping(msg = 'Thinking...') {
+    if (typingText) typingText.textContent = msg;
     typingIndicator.hidden = false;
     typingIndicator.removeAttribute('hidden');
     scrollToBottom();
@@ -125,21 +133,14 @@ const ChatUI = (() => {
 
   function hideTyping() {
     typingIndicator.hidden = true;
+    if (typingText) typingText.textContent = 'Thinking...';
   }
-
-  const typingText = $('typingText');
 
   function setLoading(state) {
     isLoading = state;
     sendBtn.disabled = state || !chatInput.value.trim();
     chatInput.disabled = state;
-    if (state) {
-      if (typingText) typingText.textContent = 'Thinking...';
-      showTyping();
-    } else {
-      if (typingText) typingText.textContent = 'Thinking...';
-      hideTyping();
-    }
+    if (state) showTyping(); else hideTyping();
   }
 
   function announce(message) {
@@ -163,7 +164,7 @@ const ChatUI = (() => {
     }
   }
 
-  /* ---------- Send message ---------- */
+  /* ---------- Send message (STREAMING) ---------- */
   async function sendMessage(text) {
     const message = (text || chatInput.value).trim();
     if (!message || isLoading) return;
@@ -177,11 +178,30 @@ const ChatUI = (() => {
     setLoading(true);
     announce('Sending message...');
 
+    // Create an empty bot bubble immediately for streaming into
+    const bubble = appendMessage('bot', '');
+    // Hide it until first token arrives
+    bubble.el.style.opacity = '0';
+
+    let accumulated = '';
+
     try {
-      const response = await GeminiService.sendMessage(message);
-      appendMessage('bot', response);
+      await GeminiService.sendMessageStream(message, (token) => {
+        // Show bubble on first token
+        if (!accumulated) {
+          hideTyping();
+          bubble.el.style.opacity = '1';
+          bubble.el.style.transition = 'opacity 0.2s ease';
+        }
+        accumulated += token;
+        bubble.updateStream(accumulated);
+      });
+
+      bubble.finalize(accumulated);
       announce('Response received');
     } catch (err) {
+      // Remove empty streaming bubble on error
+      bubble.el.remove();
       const errMsg = GeminiService.getErrorMessage(err);
       appendMessage('error', errMsg);
       announce('Error: ' + errMsg);
@@ -195,7 +215,7 @@ const ChatUI = (() => {
   function copyMessage(btn) {
     const bubble = btn.closest('.message-bubble');
     const textEl = bubble.querySelector('.message-text');
-    const text = textEl.innerText || textEl.textContent;
+    const text   = textEl.innerText || textEl.textContent;
     navigator.clipboard.writeText(text).then(() => {
       btn.textContent = '✅ Copied!';
       setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
@@ -207,7 +227,6 @@ const ChatUI = (() => {
 
   /* ---------- Clear chat ---------- */
   function clearChat() {
-    // Keep only welcome message
     const msgs = chatMessages.querySelectorAll('.message:not(.welcome-message)');
     msgs.forEach(m => m.remove());
     GeminiService.clearHistory();
@@ -221,18 +240,15 @@ const ChatUI = (() => {
     let exportText = `ElectIQ Chat Export – ${new Date().toLocaleString()}\n${'='.repeat(50)}\n\n`;
     messages.forEach(msg => {
       const sender = msg.querySelector('.message-sender')?.textContent || '';
-      const time = msg.querySelector('.message-time')?.textContent || '';
-      const text = msg.querySelector('.message-text')?.innerText || '';
+      const time   = msg.querySelector('.message-time')?.textContent || '';
+      const text   = msg.querySelector('.message-text')?.innerText || '';
       exportText += `[${time}] ${sender}:\n${text}\n\n`;
     });
-
     const blob = new Blob([exportText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `electiq-chat-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `electiq-chat-${Date.now()}.txt`;
+    a.click(); URL.revokeObjectURL(url);
     showToast('Chat exported!', 'success');
   }
 
@@ -256,38 +272,35 @@ const ChatUI = (() => {
     });
 
     chatInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
 
     sendBtn.addEventListener('click', () => sendMessage());
 
     // API key
     saveKeyBtn.addEventListener('click', () => {
-      const key = apiKeyInput.value.trim();
+      const key     = apiKeyInput.value.trim();
+      const persist = rememberKeyChk ? rememberKeyChk.checked : false;
       try {
-        GeminiService.saveApiKey(key);
+        GeminiService.saveApiKey(key, persist);
         refreshBanner();
         apiKeyInput.value = '';
-        showToast('API key saved!', 'success');
+        showToast(persist ? 'API key saved & remembered!' : 'API key saved!', 'success');
         announce('API key saved successfully');
       } catch (err) {
         showToast(err.message, 'error');
       }
     });
 
-    apiKeyToggle.addEventListener('click', () => {
+    apiKeyToggle?.addEventListener('click', () => {
       const isPassword = apiKeyInput.type === 'password';
       apiKeyInput.type = isPassword ? 'text' : 'password';
       apiKeyToggle.textContent = isPassword ? '🙈' : '👁️';
       apiKeyToggle.setAttribute('aria-pressed', String(isPassword));
     });
 
-    // Clear & export
-    clearChatBtn.addEventListener('click', clearChat);
-    exportChatBtn.addEventListener('click', exportChat);
+    clearChatBtn?.addEventListener('click', clearChat);
+    exportChatBtn?.addEventListener('click', exportChat);
 
     // Topic chips
     document.querySelectorAll('.topic-chip').forEach(chip => {
@@ -297,15 +310,13 @@ const ChatUI = (() => {
       });
     });
 
+    // Live retry status updates
+    window.addEventListener('gemini:status', (e) => {
+      if (typingText && isLoading) typingText.textContent = e.detail.message;
+    });
+
     // Init banner
     refreshBanner();
-
-    // Listen for live API status updates (e.g., rate-limit retries)
-    window.addEventListener('gemini:status', (e) => {
-      if (typingText && isLoading) {
-        typingText.textContent = e.detail.message;
-      }
-    });
   }
 
   return { init, copyMessage, sendMessage, clearChat, exportChat };
