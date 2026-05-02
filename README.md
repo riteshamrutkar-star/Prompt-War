@@ -96,6 +96,7 @@ Prompt-War/
 - **ARIA Attributes**: Full `aria-label`, `aria-live`, and `aria-hidden` support.
 - **Keyboard Navigation**: 100% accessible via `Tab` and `Enter`.
 - **WCAG Compliant**: High contrast mode, dynamic text scaling, and semantic HTML5 sections.
+- **Dynamic Theming**: Built-in Light and Dark mode toggle respecting user preferences.
 
 ---
 

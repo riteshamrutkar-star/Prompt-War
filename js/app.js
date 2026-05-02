@@ -69,6 +69,47 @@ function loadAccessibilityPrefs() {
 }
 
 /* =============================================
+   THEME TOGGLE (Light / Dark Mode)
+   ============================================= */
+function initThemeToggle() {
+  const toggleBtn = document.getElementById('themeToggle');
+  if (!toggleBtn) return;
+  
+  const iconSun = toggleBtn.querySelector('.icon-sun');
+  const iconMoon = toggleBtn.querySelector('.icon-moon');
+  
+  // Check local storage or system preference
+  const savedTheme = localStorage.getItem('electiq_theme');
+  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+  
+  const isLightMode = savedTheme === 'light' || (!savedTheme && prefersLight);
+  
+  if (isLightMode) {
+    document.documentElement.setAttribute('data-theme', 'light');
+    iconSun.style.display = 'none';
+    iconMoon.style.display = 'inline';
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    if (newTheme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      iconSun.style.display = 'none';
+      iconMoon.style.display = 'inline';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      iconMoon.style.display = 'none';
+      iconSun.style.display = 'inline';
+    }
+    
+    localStorage.setItem('electiq_theme', newTheme);
+    showToast(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} Mode Enabled`, 'info');
+  });
+}
+
+/* =============================================
    NAVBAR
    ============================================= */
 function initNavbar() {
@@ -308,6 +349,7 @@ function initBallotAnalyzer() {
    ============================================= */
 document.addEventListener('DOMContentLoaded', () => {
   loadAccessibilityPrefs();
+  initThemeToggle();
   initNavbar();
   initParticles();
 
