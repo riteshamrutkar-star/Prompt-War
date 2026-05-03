@@ -13,6 +13,7 @@ ElectIQ is an AI-powered, interactive web application that helps users understan
 | 🤖 **Gemini AI Chat** | Ask any election question and receive clear, unbiased, structured answers |
 | 📋 **8-Step Process Guide** | Interactive, filterable cards covering Pre-Election → Election Day → Post-Election |
 | 📅 **Interactive Timeline** | Visual election calendar for General, Primary, and Local elections |
+| 🗺️ **Booth Locator Map** | Interactive Leaflet-powered map to find nearby election booths using geolocation |
 | 🧠 **Knowledge Quiz** | 8-question adaptive quiz with instant feedback and explanations |
 | 🌍 **Multi-Language Support** | Instant translation to Hindi, Marathi, Bengali, Tamil, Telugu, and more using Google Translate |
 | 📖 **Election Glossary** | 20+ searchable election terms with definitions |
@@ -54,6 +55,7 @@ Prompt-War/
 │   ├── styles.css          # Core design system, layout, components
 │   ├── chat.css            # Chat interface styles
 │   ├── timeline.css        # Timeline & quiz styles
+│   ├── map.css             # Leaflet map integration styles
 │   └── animations.css      # Keyframes, reveal animations, particles
 └── js/
     ├── data.js             # All static content (steps, timeline, quiz, glossary)
@@ -61,6 +63,7 @@ Prompt-War/
     ├── chat.js             # Chat UI module (formatting, copy, export)
     ├── process.js          # Election process cards module
     ├── timeline.js         # Timeline visualization module
+    ├── map.js              # Leaflet map and geolocation module
     ├── quiz.js             # Interactive quiz module
     ├── glossary.js         # Searchable glossary module
     └── app.js              # Main orchestrator (init, navbar, particles, a11y)
